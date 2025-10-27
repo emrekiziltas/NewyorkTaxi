@@ -5,6 +5,7 @@ from pathlib import Path
 import re
 import plotly.express as px
 import plotly.graph_objects as go
+import os
 
 st.set_page_config(
     page_title="NYC Taxi Analytics Dashboard",
@@ -34,8 +35,12 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-DATA_DIR = Path(r"C:\Users\ek675\PycharmProjects\PythonProject\NewyorkTaxi\src\data\processed")
+# Try to read from environment variable, otherwise default to local folder
+DATA_DIR = Path(os.getenv("DATA_DIR", "src/data/processed")).resolve()
+st.warning( {DATA_DIR})
 
+# Create directory if it doesn't exist (useful when first running pipeline)
+DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 # --- Find Data Files and Group by Year ---
 @st.cache_resource

@@ -4,9 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="916784b3-b30e-404f-bbe7-d1c31646368b" name="Changes" comment="Rename the files">
-      <change afterPath="$PROJECT_DIR$/reguirements.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="916784b3-b30e-404f-bbe7-d1c31646368b" name="Changes" comment="Add the requirements.txt file">
+      <change beforePath="$PROJECT_DIR$/src/dashboard.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/dashboard.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -137,12 +136,21 @@
       <option name="project" value="LOCAL" />
       <updated>1761557359503</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Add the requirements.txt file">
+      <option name="closed" value="true" />
+      <created>1761560915464</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1761560915464</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="first commit" />
     <MESSAGE value="Rename the files" />
-    <option name="LAST_COMMIT_MESSAGE" value="Rename the files" />
+    <MESSAGE value="Add the requirements.txt file" />
+    <option name="LAST_COMMIT_MESSAGE" value="Add the requirements.txt file" />
   </component>
 </project>
