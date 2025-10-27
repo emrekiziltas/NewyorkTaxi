@@ -4,10 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="916784b3-b30e-404f-bbe7-d1c31646368b" name="Changes" comment="first commit">
+    <list default="true" id="916784b3-b30e-404f-bbe7-d1c31646368b" name="Changes" comment="Rename the files">
+      <change afterPath="$PROJECT_DIR$/reguirements.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main_pipeline.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/data_ingestion.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/reports.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/dashboard.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -40,6 +39,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python.dashboard.executor": "Run",
     "Python.main_pipeline.executor": "Run",
     "Python.reports.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
@@ -129,22 +129,20 @@
       <option name="project" value="LOCAL" />
       <updated>1761320972756</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Rename the files">
+      <option name="closed" value="true" />
+      <created>1761557359503</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1761557359503</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="first commit" />
-    <option name="LAST_COMMIT_MESSAGE" value="first commit" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/main.py</url>
-          <line>8</line>
-          <option name="timeStamp" value="1" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
+    <MESSAGE value="Rename the files" />
+    <option name="LAST_COMMIT_MESSAGE" value="Rename the files" />
   </component>
 </project>
