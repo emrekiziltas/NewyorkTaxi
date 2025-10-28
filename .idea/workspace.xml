@@ -4,12 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="916784b3-b30e-404f-bbe7-d1c31646368b" name="Changes" comment="generic data directory setup">
-      <change afterPath="$PROJECT_DIR$/src/Borough.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/test.py" afterDir="false" />
+    <list default="true" id="916784b3-b30e-404f-bbe7-d1c31646368b" name="Changes" comment="Added airport tab">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/dashboard.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/dashboard.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/data_ingestion.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/data_ingestion.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -58,7 +55,7 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "master",
+    "git-widget-placeholder": "refactor/modular-structure",
     "last_opened_file_path": "C:/Users/ek675/PycharmProjects/PythonProject/NewyorkTaxi/src"
   }
 }]]></component>
@@ -67,6 +64,7 @@
       <recent name="C:\Users\ek675\PycharmProjects\PythonProject\NewyorkTaxi\src" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\ek675\PycharmProjects\PythonProject\NewyorkTaxi\src\data\Sample" />
       <recent name="C:\Users\ek675\PycharmProjects\PythonProject\NewyorkTaxi\src" />
     </key>
   </component>
@@ -238,7 +236,15 @@
       <option name="project" value="LOCAL" />
       <updated>1761561330972</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Added airport tab">
+      <option name="closed" value="true" />
+      <created>1761654577294</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1761654577294</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -246,6 +252,7 @@
     <MESSAGE value="Rename the files" />
     <MESSAGE value="Add the requirements.txt file" />
     <MESSAGE value="generic data directory setup" />
-    <option name="LAST_COMMIT_MESSAGE" value="generic data directory setup" />
+    <MESSAGE value="Added airport tab" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added airport tab" />
   </component>
 </project>

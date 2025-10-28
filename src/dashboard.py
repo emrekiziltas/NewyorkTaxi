@@ -816,7 +816,7 @@ with st.expander("🔍 Filtered Raw Data (Sample)", expanded=False):
     if sample_df is not None and not sample_df.empty:
         st.dataframe(sample_df, use_container_width=True)
 
-    with tab6:
+with tab6:
 
         # --- Global style ---
         st.markdown("""
