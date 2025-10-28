@@ -1,4 +1,4 @@
-from pathlib import Path
+from import pandas as pd import Path
 import pandas as pd
 
 # Folder where your parquet files are stored
