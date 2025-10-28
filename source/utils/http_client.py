@@ -6,7 +6,7 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-from config.settings import Config
+from source.config.settings import Config
 
 
 class HTTPClient:
