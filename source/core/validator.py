@@ -6,9 +6,9 @@ from typing import Dict, Any
 
 import pandas as pd
 
-from ..config.settings import Config
-from ..utils.logger import logger
-from ..utils.exceptions import ValidationError
+from config.settings import Config
+from utils.logger import logger
+from utils.exceptions import ValidationError
 
 
 class DataValidator:

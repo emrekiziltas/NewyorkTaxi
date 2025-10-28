@@ -8,10 +8,10 @@ from typing import Optional
 import pandas as pd
 import requests
 
-from ..config.settings import Config
-from ..utils.logger import logger
-from ..utils.http_client import HTTPClient
-from ..utils.exceptions import DownloadError
+from config.settings import Config
+from utils.logger import logger
+from utils.http_client import HTTPClient
+from utils.exceptions import DownloadError
 
 
 class DataDownloader:
