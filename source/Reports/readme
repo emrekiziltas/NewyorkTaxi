@@ -1,0 +1,267 @@
+# NYC Taxi Analytics Dashboard - Refactored
+
+A professional, modular, and maintainable Streamlit dashboard for analyzing NYC taxi trip data.
+
+## 📁 Project Structure
+
+```
+nyc-taxi-dashboard/
+├── app.py                  # Main application entry point
+├── config.py               # Configuration and constants
+├── database.py             # Database connection and query execution
+├── data_loader.py          # Data file management and loading
+├── query_builder.py        # SQL query construction
+├── ui_components.py        # Reusable UI components
+├── requirements.txt        # Python dependencies
+└── README.md              # This file
+```
+
+## 🎯 Key Improvements
+
+### 1. **Separation of Concerns**
+- Each module has a single, well-defined responsibility
+- Business logic separated from presentation layer
+- Database operations isolated from UI code
+
+### 2. **Maintainability**
+- **config.py**: All configuration in one place - easy to modify settings
+- **database.py**: Centralized database operations with error handling
+- **query_builder.py**: All SQL queries in dedicated builder class
+- **ui_components.py**: Reusable UI components prevent code duplication
+- **data_loader.py**: File management and memory estimation logic
+
+### 3. **Code Organization**
+- Clear class-based design with single responsibility principle
+- Type hints for better code documentation
+- Comprehensive docstrings for all functions
+- Consistent naming conventions
+
+### 4. **Error Handling**
+- Centralized error handling in `DatabaseManager`
+- Graceful degradation when queries fail
+- User-friendly error messages with details
+
+### 5. **Performance**
+- Cached database connections using `@st.cache_resource`
+- Efficient query execution with proper limits
+- Memory estimation to prevent OOM errors
+
+### 6. **Scalability**
+- Easy to add new visualizations in `ui_components.py`
+- Simple to add new queries in `query_builder.py`
+- Configuration-driven settings for easy customization
+
+## 🚀 Getting Started
+
+### Installation
+
+```bash
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### Running the Dashboard
+
+```bash
+streamlit run app.py
+```
+
+## 📦 Dependencies
+
+```txt
+streamlit>=1.28.0
+duckdb>=0.9.0
+pandas>=2.0.0
+plotly>=5.17.0
+openpyxl>=3.1.0  # Optional, for Excel export
+```
+
+## 🔧 Configuration
+
+All configuration is centralized in `config.py`:
+
+- **Page settings**: Title, icon, layout
+- **Data paths**: Default data directory
+- **Query limits**: Export limits, sample sizes
+- **Memory thresholds**: Warning and danger levels
+- **Default filters**: Default ranges for all filters
+- **UI styling**: Custom CSS styles
+
+Example customization:
+
+```python
+# config.py
+@dataclass
+class AppConfig:
+    PAGE_TITLE: str = "My Custom Dashboard"
+    DATA_DIR: Path = Path("/custom/data/path")
+    DEFAULT_EXPORT_LIMIT: int = 50000
+```
+
+## 📊 Module Details
+
+### config.py
+Central configuration using dataclasses. Modify here to change:
+- Default filter values
+- Memory thresholds
+- Export limits
+- UI styling
+
+### database.py
+Manages DuckDB connections and query execution:
+- `DatabaseManager`: Singleton pattern for connection management
+- `execute_query()`: Centralized error handling for all queries
+- Comprehensive exception handling with user-friendly messages
+
+### data_loader.py
+Handles data file discovery and loading:
+- `DataLoader`: Scans and organizes parquet files by year
+- `MemoryEstimator`: Warns users about large datasets
+- File filtering by month ranges
+
+### query_builder.py
+Constructs all SQL queries:
+- `QueryBuilder`: Single source of truth for all queries
+- Methods for each type of analysis
+- Easy to add new queries or modify existing ones
+
+### ui_components.py
+Reusable UI components:
+- `UIComponents`: Renders all visualizations
+- `FilterPanel`: Handles sidebar filters
+- Consistent styling and error handling
+
+### app.py
+Main application orchestration:
+- Coordinates all modules
+- Handles user interactions
+- Manages application flow
+
+## 🎨 Adding New Features
+
+### Adding a New Visualization
+
+1. **Add query method in `query_builder.py`**:
+```python
+def get_my_new_query(self, where_clause: str) -> str:
+    return f"""
+    SELECT ...
+    FROM {self.from_clause}
+    WHERE {where_clause}
+    """
+```
+
+2. **Add rendering method in `ui_components.py`**:
+```python
+@staticmethod
+def render_my_new_chart(df: Optional[pd.DataFrame]):
+    if df is None or df.empty:
+        return
+
+    fig = px.bar(df, x='column1', y='column2')
+    st.plotly_chart(fig, use_container_width=True)
+```
+
+3. **Use in `app.py`**:
+```python
+my_df = db.execute_query(
+    query_builder.get_my_new_query(where_clause),
+    "Failed to load my data"
+)
+ui.render_my_new_chart(my_df)
+```
+
+### Adding a New Filter
+
+1. **Add default value in `config.py`**:
+```python
+DEFAULT_MY_FILTER: tuple = (0, 100)
+```
+
+2. **Add UI in `ui_components.py` `FilterPanel.render()`**:
+```python
+filters['my_filter'] = st.slider(
+    "My Filter:",
+    min_value=0,
+    max_value=100,
+    value=config.DEFAULT_MY_FILTER
+)
+```
+
+3. **Use in `query_builder.py` `build_where_clause()`**:
+```python
+conditions.append(
+    f"my_column BETWEEN {filters['my_filter'][0]} AND {filters['my_filter'][1]}"
+)
+```
+
+## 🧪 Testing
+
+Each module can be tested independently:
+
+```python
+# Test database connection
+from database import db
+result = db.execute_query("SELECT 1 as test", "Test query")
+assert result is not None
+
+# Test query builder
+from query_builder import QueryBuilder
+qb = QueryBuilder(["/path/to/file.parquet"])
+query = qb.get_kpi_query("1=1")
+assert "COUNT(*)" in query
+```
+
+## 📝 Best Practices
+
+1. **Always use the QueryBuilder** for SQL queries
+2. **Use db.execute_query()** for all database operations
+3. **Add configuration to config.py** instead of hardcoding
+4. **Create reusable components** in ui_components.py
+5. **Handle None/empty DataFrames** in rendering functions
+6. **Add type hints** to all function signatures
+7. **Write descriptive docstrings** for public methods
+
+## 🔒 Error Handling Pattern
+
+All database queries follow this pattern:
+
+```python
+result = db.execute_query(
+    query_builder.get_some_query(where_clause),
+    "User-friendly error message"
+)
+
+if result is not None and not result.empty:
+    # Process result
+    pass
+```
+
+## 🎯 Future Enhancements
+
+Potential improvements:
+- Add unit tests for each module
+- Implement caching for expensive queries
+- Add data validation layer
+- Create configuration file (YAML/JSON)
+- Add logging system
+- Implement user authentication
+- Add data refresh mechanism
+- Create admin panel for configuration
+
+## 📄 License
+
+This project is provided as-is for educational and commercial use.
+
+## 🤝 Contributing
+
+To contribute:
+1. Follow the modular architecture
+2. Add new features in appropriate modules
+3. Update this README with changes
+4. Ensure error handling is consistent
+5. Add docstrings and type hints

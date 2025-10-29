@@ -1,0 +1,284 @@
+"""
+SQL query builder module
+"""
+from typing import List, Dict, Any
+from config import config
+
+
+class QueryBuilder:
+    """Builds SQL queries for taxi data analysis"""
+
+    def __init__(self, file_paths: List[str]):
+        """
+        Initialize query builder with data source
+
+        Args:
+            file_paths: List of parquet file paths
+        """
+        self.file_paths = file_paths
+        self.from_clause = self._build_from_clause()
+
+    def _build_from_clause(self) -> str:
+        """Build the FROM clause for reading parquet files"""
+        file_list = "', '".join(self.file_paths)
+        return f"read_parquet(['{file_list}'])"
+
+    def build_where_clause(self, filters: Dict[str, Any]) -> str:
+        """
+        Build WHERE clause from filters
+
+        Args:
+            filters: Dictionary of filter conditions
+
+        Returns:
+            WHERE clause string
+        """
+        conditions = [
+            f"pickup_hour BETWEEN {filters['hour_range'][0]} AND {filters['hour_range'][1]}",
+            f"total_amount BETWEEN {filters['fare_range'][0]} AND {filters['fare_range'][1]}",
+            f"trip_distance BETWEEN {filters['distance_range'][0]} AND {filters['distance_range'][1]}",
+            f"passenger_count BETWEEN {filters['passenger_range'][0]} AND {filters['passenger_range'][1]}"
+        ]
+
+        if filters.get('weekdays'):
+            weekday_nums = [config.WEEKDAY_MAP[day] for day in filters['weekdays']]
+            conditions.append(f"pickup_weekday IN ({','.join(map(str, weekday_nums))})")
+
+        if filters.get('tip_percentage', 0) > 0:
+            tip_pct = filters['tip_percentage']
+            conditions.append(
+                f"(tip_amount / NULLIF(fare_amount, 0) * 100) >= {tip_pct}"
+            )
+
+        return " AND ".join(conditions)
+
+    def get_kpi_query(self, where_clause: str) -> str:
+        """Build KPI summary query"""
+        return f"""
+        SELECT
+            COUNT(*) as total_trips,
+            ROUND(AVG(total_amount), 2) as avg_fare,
+            ROUND(SUM(total_amount), 2) as total_revenue,
+            ROUND(AVG(trip_distance), 2) as avg_distance,
+            ROUND(AVG(tip_amount), 2) as avg_tip,
+            ROUND(AVG(passenger_count), 1) as avg_passengers,
+            ROUND(AVG(CASE WHEN fare_amount > 0 
+                THEN tip_amount / fare_amount * 100 ELSE 0 END), 1) as avg_tip_percentage
+        FROM {self.from_clause}
+        WHERE {where_clause}
+        """
+
+    def get_hourly_query(self, where_clause: str) -> str:
+        """Build hourly analysis query"""
+        return f"""
+        SELECT
+            pickup_hour as Hour,
+            COUNT(*) as Trips,
+            ROUND(AVG(total_amount), 2) as Avg_Fare
+        FROM {self.from_clause}
+        WHERE {where_clause}
+        GROUP BY pickup_hour
+        ORDER BY pickup_hour
+        """
+
+    def get_weekday_query(self, where_clause: str) -> str:
+        """Build weekday analysis query"""
+        return f"""
+        SELECT
+            pickup_weekday,
+            COUNT(*) as trips,
+            ROUND(AVG(total_amount), 2) as avg_fare,
+            ROUND(AVG(trip_distance), 2) as avg_distance
+        FROM {self.from_clause}
+        WHERE {where_clause}
+        GROUP BY pickup_weekday
+        ORDER BY pickup_weekday
+        """
+
+    def get_fare_distribution_query(self, where_clause: str) -> str:
+        """Build fare distribution query"""
+        return f"""
+        SELECT
+            CAST(total_amount / 5 AS INTEGER) * 5 as fare_bucket,
+            COUNT(*) as trip_count
+        FROM {self.from_clause}
+        WHERE {where_clause} AND total_amount BETWEEN 0 AND 100
+        GROUP BY fare_bucket
+        ORDER BY fare_bucket
+        """
+
+    def get_tip_analysis_query(self, where_clause: str) -> str:
+        """Build tip analysis query"""
+        return f"""
+        SELECT
+            ROUND((tip_amount / NULLIF(fare_amount, 0) * 100) / 5) * 5 as tip_percent_bucket,
+            COUNT(*) as count
+        FROM {self.from_clause}
+        WHERE {where_clause} 
+            AND fare_amount > 0 
+            AND tip_amount >= 0
+            AND (tip_amount / fare_amount * 100) BETWEEN 0 AND 50
+        GROUP BY tip_percent_bucket
+        ORDER BY tip_percent_bucket
+        """
+
+    def get_revenue_trends_query(self, where_clause: str) -> str:
+        """Build revenue trends query"""
+        return f"""
+        SELECT
+            pickup_month as month,
+            pickup_day as day,
+            ROUND(SUM(total_amount), 2) as daily_revenue,
+            COUNT(*) as daily_trips
+        FROM {self.from_clause}
+        WHERE {where_clause}
+        GROUP BY pickup_month, pickup_day
+        ORDER BY pickup_month, pickup_day
+        """
+
+    def get_distance_distribution_query(self, where_clause: str) -> str:
+        """Build distance distribution query"""
+        return f"""
+        SELECT
+            CAST(trip_distance as INTEGER) as distance_bucket,
+            COUNT(*) as count
+        FROM {self.from_clause}
+        WHERE {where_clause} AND trip_distance BETWEEN 0 AND 30
+        GROUP BY distance_bucket
+        ORDER BY distance_bucket
+        LIMIT 30
+        """
+
+    def get_passenger_query(self, where_clause: str) -> str:
+        """Build passenger count query"""
+        return f"""
+        SELECT
+            passenger_count,
+            COUNT(*) as trips,
+            ROUND(AVG(total_amount), 2) as avg_fare
+        FROM {self.from_clause}
+        WHERE {where_clause} AND passenger_count BETWEEN 1 AND 6
+        GROUP BY passenger_count
+        ORDER BY passenger_count
+        """
+
+    def get_statistics_query(self, where_clause: str) -> str:
+        """Build statistical summary query"""
+        return f"""
+        SELECT
+            'Fare Amount' as metric,
+            ROUND(MIN(total_amount), 2) as min,
+            ROUND(PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY total_amount), 2) as q1,
+            ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY total_amount), 2) as median,
+            ROUND(PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY total_amount), 2) as q3,
+            ROUND(MAX(total_amount), 2) as max,
+            ROUND(AVG(total_amount), 2) as mean,
+            ROUND(STDDEV(total_amount), 2) as std_dev
+        FROM {self.from_clause}
+        WHERE {where_clause} AND total_amount BETWEEN 0 AND 500
+
+        UNION ALL
+
+        SELECT
+            'Trip Distance' as metric,
+            ROUND(MIN(trip_distance), 2),
+            ROUND(PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY trip_distance), 2),
+            ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY trip_distance), 2),
+            ROUND(PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY trip_distance), 2),
+            ROUND(MAX(trip_distance), 2),
+            ROUND(AVG(trip_distance), 2),
+            ROUND(STDDEV(trip_distance), 2)
+        FROM {self.from_clause}
+        WHERE {where_clause} AND trip_distance BETWEEN 0 AND 100
+
+        UNION ALL
+
+        SELECT
+            'Tip Amount' as metric,
+            ROUND(MIN(tip_amount), 2),
+            ROUND(PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY tip_amount), 2),
+            ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY tip_amount), 2),
+            ROUND(PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY tip_amount), 2),
+            ROUND(MAX(tip_amount), 2),
+            ROUND(AVG(tip_amount), 2),
+            ROUND(STDDEV(tip_amount), 2)
+        FROM {self.from_clause}
+        WHERE {where_clause} AND tip_amount >= 0
+        """
+
+    def get_correlation_query(self, where_clause: str) -> str:
+        """Build correlation analysis query"""
+        return f"""
+        SELECT
+            trip_distance,
+            total_amount,
+            tip_amount,
+            passenger_count
+        FROM {self.from_clause}
+        WHERE {where_clause}
+            AND trip_distance BETWEEN 0 AND 50
+            AND total_amount BETWEEN 0 AND 200
+        LIMIT {config.CORRELATION_SAMPLE_LIMIT}
+        """
+
+    def get_airport_query(self, where_clause: str) -> str:
+        """Build airport analysis query"""
+        return f"""
+        SELECT
+            strftime(tpep_pickup_datetime, '%A') AS day_of_week,
+            COUNT(*) AS total_trips,
+            SUM(CASE WHEN airport_fee > 0 THEN 1 ELSE 0 END) AS airport_trips,
+            ROUND(SUM(CASE WHEN airport_fee > 0 THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) AS airport_trip_pct
+        FROM {self.from_clause}
+        WHERE {where_clause}
+        GROUP BY day_of_week
+        ORDER BY
+            CASE day_of_week
+                WHEN 'Monday' THEN 1
+                WHEN 'Tuesday' THEN 2
+                WHEN 'Wednesday' THEN 3
+                WHEN 'Thursday' THEN 4
+                WHEN 'Friday' THEN 5
+                WHEN 'Saturday' THEN 6
+                WHEN 'Sunday' THEN 7
+            END
+        """
+
+    def get_cost_tip_query(self, where_clause: str) -> str:
+        """Build cost per mile and tip percentage query"""
+        return f"""
+        SELECT
+            is_weekend,
+            time_period,
+            ROUND(AVG(cost_per_mile), 2) AS avg_cost_per_mile,
+            ROUND(AVG(tip_percentage), 2) AS avg_tip_percentage
+        FROM {self.from_clause}
+        WHERE {where_clause}
+        GROUP BY is_weekend, time_period
+        ORDER BY is_weekend, time_period
+        """
+
+    def get_export_query(self, where_clause: str, limit: int) -> str:
+        """Build export query"""
+        return f"""
+        SELECT *
+        FROM {self.from_clause}
+        WHERE {where_clause}
+        LIMIT {limit}
+        """
+
+    def get_sample_query(self, where_clause: str) -> str:
+        """Build sample data query"""
+        return f"""
+        SELECT 
+            pickup_hour,
+            pickup_weekday,
+            trip_distance,
+            total_amount,
+            tip_amount,
+            passenger_count,
+            fare_amount
+        FROM {self.from_clause}
+        WHERE {where_clause}
+        LIMIT {config.SAMPLE_LIMIT}
+        """
