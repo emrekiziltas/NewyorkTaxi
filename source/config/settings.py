@@ -29,6 +29,7 @@ class Config:
     # Directory paths
     DEFAULT_RAW_DIR = "data/raw"
     DEFAULT_PROCESSED_DIR = "data/processed"
+    DEFAULT_LOOKUP_DIR = "data/lookup"
 
     # HTTP settings
     HTTP_TIMEOUT = 300

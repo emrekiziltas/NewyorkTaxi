@@ -103,7 +103,7 @@ class DataTransformer:
             df['pickup_month'] = df[pickup_col].dt.month
             df['pickup_year'] = df[pickup_col].dt.year
             df['is_weekend'] = df['pickup_weekday'].isin([5, 6])
-
+            df['duration'] = ((df['tpep_dropoff_datetime'] - df['tpep_pickup_datetime']).dt.total_seconds() / 60).astype(int)
             # Time period categorization
             df['time_period'] = pd.cut(
                 df['pickup_hour'],
@@ -132,6 +132,25 @@ class DataTransformer:
 
         logger.info("Created derived metrics")
         return df
+
+    def add_borough_info(self, df: pd.DataFrame, lookup_path: str) -> pd.DataFrame:
+        """Add pickup and dropoff boroughs to taxi dataset."""
+        try:
+            lookup_df = pd.read_csv(lookup_path)
+            id_to_borough = lookup_df.set_index("LocationID")["Borough"].to_dict()
+
+            if "PULocationID" in df.columns:
+                df["pickup_borough"] = df["PULocationID"].map(id_to_borough)
+            if "DOLocationID" in df.columns:
+                df["dropoff_borough"] = df["DOLocationID"].map(id_to_borough)
+
+            return df
+
+        except Exception as e:
+            logger.error(f"Failed to merge borough info: {e}")
+            return df
+
+
 
     def _get_pickup_column(self, df: pd.DataFrame) -> Optional[str]:
         """Find the pickup datetime column name."""

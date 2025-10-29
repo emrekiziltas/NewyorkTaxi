@@ -71,6 +71,25 @@ class DataDownloader:
         except Exception as e:
             raise DownloadError(f"Unexpected error during download: {e}")
 
+    def save_borough_data(self) -> None:
+        """Download and save the TLC zone lookup table locally."""
+        lookup_url = "https://d37ci6vzurychx.cloudfront.net/misc/taxi+_zone_lookup.csv"
+        lookup_path = Path("data/lookup/taxi_zone_lookup.csv")
+        logger.info(f"Downloading: { lookup_url}")
+
+        try:
+            lookup_path.parent.mkdir(parents=True, exist_ok=True)
+            if not lookup_path.exists():
+                lookup_df = pd.read_csv(lookup_url)
+                lookup_df.to_csv(lookup_path, index=False)
+                logger.info(f"Downloading: {lookup_url}")
+                logger.info(f"Saved TLC zone lookup table locally ({len(lookup_df)} rows)")
+            else:
+                logger.info(f"TLC zone lookup table already exists at {lookup_path}")
+        except Exception as e:
+            logger.error(f"Failed to save borough lookup: {e}")
+
+
     def close(self):
         self.http_client.close()
 
