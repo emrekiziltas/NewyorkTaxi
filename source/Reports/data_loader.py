@@ -23,6 +23,8 @@ class DataLoader:
             Dictionary mapping years to list of file paths
         """
         try:
+            st.set_page_config(f" emre: {config.DATA_DIR}")
+
             if not config.DATA_DIR.exists():
                 return {}
 

@@ -2,7 +2,6 @@
 SQL query builder module
 """
 from typing import List, Dict, Any
-from config import config
 
 
 class QueryBuilder:
@@ -28,21 +27,43 @@ class QueryBuilder:
         Build WHERE clause from filters
 
         Args:
-            filters: Dictionary of filter conditions
+            filters: Dictionary of filter conditions containing:
+                - hour_range: tuple of (min_hour, max_hour)
+                - fare_range: tuple of (min_fare, max_fare)
+                - distance_range: tuple of (min_distance, max_distance)
+                - passenger_range: tuple of (min_passengers, max_passengers)
+                - weekdays: list of weekday names (optional)
+                - weekday_map: dict mapping weekday names to numbers (optional)
+                - tip_percentage: minimum tip percentage (optional)
 
         Returns:
             WHERE clause string
         """
+        # Default weekday mapping
+        default_weekday_map = {
+            'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4,
+            'Friday': 5, 'Saturday': 6, 'Sunday': 0
+        }
+
+        # Ensure numeric values for hour_range (convert from any type)
+        hour_min = int(filters['hour_range'][0])
+        hour_max = int(filters['hour_range'][1])
+
         conditions = [
-            f"pickup_hour BETWEEN {filters['hour_range'][0]} AND {filters['hour_range'][1]}",
-            f"total_amount BETWEEN {filters['fare_range'][0]} AND {filters['fare_range'][1]}",
-            f"trip_distance BETWEEN {filters['distance_range'][0]} AND {filters['distance_range'][1]}",
+            f"pickup_hour BETWEEN {hour_min} AND {hour_max}",
+            f"CAST(total_amount AS DOUBLE) BETWEEN {filters['fare_range'][0]} AND {filters['fare_range'][1]}",
+            f"CAST(trip_distance AS DOUBLE) BETWEEN {filters['distance_range'][0]} AND {filters['distance_range'][1]}",
             f"passenger_count BETWEEN {filters['passenger_range'][0]} AND {filters['passenger_range'][1]}"
         ]
 
-        if filters.get('weekdays'):
-            weekday_nums = [config.WEEKDAY_MAP[day] for day in filters['weekdays']]
-            conditions.append(f"pickup_weekday IN ({','.join(map(str, weekday_nums))})")
+        # Only add weekday filter if weekdays are provided and not empty
+        weekdays = filters.get('weekdays', [])
+        if weekdays and len(weekdays) > 0:
+            # Use provided weekday_map or default
+            weekday_map = filters.get('weekday_map', default_weekday_map)
+            weekday_nums = [weekday_map[day] for day in weekdays if day in weekday_map]
+            if weekday_nums:
+                conditions.append(f"pickup_weekday IN ({','.join(map(str, weekday_nums))})")
 
         if filters.get('tip_percentage', 0) > 0:
             tip_pct = filters['tip_percentage']
@@ -78,7 +99,7 @@ class QueryBuilder:
         FROM {self.from_clause}
         WHERE {where_clause}
         GROUP BY pickup_hour
-        ORDER BY pickup_hour
+        ORDER BY Hour
         """
 
     def get_weekday_query(self, where_clause: str) -> str:
@@ -206,7 +227,7 @@ class QueryBuilder:
         WHERE {where_clause} AND tip_amount >= 0
         """
 
-    def get_correlation_query(self, where_clause: str) -> str:
+    def get_correlation_query(self, where_clause: str, limit: int = 10000) -> str:
         """Build correlation analysis query"""
         return f"""
         SELECT
@@ -218,7 +239,7 @@ class QueryBuilder:
         WHERE {where_clause}
             AND trip_distance BETWEEN 0 AND 50
             AND total_amount BETWEEN 0 AND 200
-        LIMIT {config.CORRELATION_SAMPLE_LIMIT}
+        LIMIT {limit}
         """
 
     def get_airport_query(self, where_clause: str) -> str:
@@ -267,7 +288,7 @@ class QueryBuilder:
         LIMIT {limit}
         """
 
-    def get_sample_query(self, where_clause: str) -> str:
+    def get_sample_query(self, where_clause: str, limit: int = 100) -> str:
         """Build sample data query"""
         return f"""
         SELECT 
@@ -280,5 +301,38 @@ class QueryBuilder:
             fare_amount
         FROM {self.from_clause}
         WHERE {where_clause}
-        LIMIT {config.SAMPLE_LIMIT}
+        LIMIT {limit}
+        """
+
+    def get_data_summary_query(self) -> str:
+        """Build data summary query for loading statistics"""
+        return f"""
+        SELECT 
+            COUNT(*) as total_records,
+            MIN(tpep_pickup_datetime) as min_date,
+            MAX(tpep_pickup_datetime) as max_date
+        FROM {self.from_clause}
+        """
+
+    def get_count_query(self, where_clause: str) -> str:
+        """Build count query for export estimation"""
+        return f"""
+        SELECT COUNT(*) as total_count
+        FROM {self.from_clause}
+        WHERE {where_clause}
+        """
+
+    def get_top_revenue_days_query(self, where_clause: str, limit: int = 10) -> str:
+        """Build top revenue days query"""
+        return f"""
+        SELECT
+            pickup_month || '-' || pickup_day as date,
+            COUNT(*) as trips,
+            ROUND(SUM(total_amount), 2) as revenue,
+            ROUND(AVG(total_amount), 2) as avg_fare
+        FROM {self.from_clause}
+        WHERE {where_clause}
+        GROUP BY pickup_month, pickup_day
+        ORDER BY revenue DESC
+        LIMIT {limit}
         """
