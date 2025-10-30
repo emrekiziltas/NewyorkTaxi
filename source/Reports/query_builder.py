@@ -50,7 +50,7 @@ class QueryBuilder:
         hour_max = int(filters['hour_range'][1])
 
         conditions = [
-            f"pickup_hour BETWEEN {hour_min} AND {hour_max}",
+            f"EXTRACT(HOUR FROM pickup_hour) BETWEEN {hour_min} AND {hour_max}",
             f"CAST(total_amount AS DOUBLE) BETWEEN {filters['fare_range'][0]} AND {filters['fare_range'][1]}",
             f"CAST(trip_distance AS DOUBLE) BETWEEN {filters['distance_range'][0]} AND {filters['distance_range'][1]}",
             f"passenger_count BETWEEN {filters['passenger_range'][0]} AND {filters['passenger_range'][1]}"
@@ -93,7 +93,7 @@ class QueryBuilder:
         """Build hourly analysis query"""
         return f"""
         SELECT
-            pickup_hour as Hour,
+            EXTRACT(HOUR FROM pickup_hour) as Hour,
             COUNT(*) as Trips,
             ROUND(AVG(total_amount), 2) as Avg_Fare
         FROM {self.from_clause}
@@ -292,7 +292,7 @@ class QueryBuilder:
         """Build sample data query"""
         return f"""
         SELECT 
-            pickup_hour,
+            EXTRACT(HOUR FROM pickup_hour),
             pickup_weekday,
             trip_distance,
             total_amount,

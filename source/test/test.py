@@ -8,11 +8,10 @@ processed_dir = Path(r"C:\Users\ek675\PycharmProjects\PythonProject\NewyorkTaxi\
 sample_dir = Path("samples")
 sample_dir.mkdir(exist_ok=True)
 
-# List of parquet files
-parquet_files = [
-    "yellow_2023_01_processed.parquet",
-    "yellow_2023_02_processed.parquet"
-]
+parquet_files = [f.name for f in processed_dir.glob("*.parquet")]
+
+# Optional: sort by name (for predictable order)
+parquet_files.sort()
 
 # <--- Initialize the list here! --->
 excel_files = []
